@@ -26,3 +26,8 @@ $ sudo nomad agent -dev -bind 0.0.0.0 -log-level ERROR -dc dev-general
 ```shell
 $ nomad job run -verbose -var-file=./1_Hello_World_Vars.hcl ./1_Hello_World.hcl
 ```
+
+### Stop and Purge a job deployment:
+```shell
+nomad job stop -purge "hello-world"
+```
