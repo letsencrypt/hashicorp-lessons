@@ -5,6 +5,10 @@ variable "say-hello-to" {
   type = string
 }
 
+variable "hello-world-sh-template" {
+  type = string
+}
+
 // job is the top-most configuration option in the job specification.
 // https://www.nomadproject.io/docs/job-specification/job
 job "hello-world" {
@@ -63,34 +67,19 @@ job "hello-world" {
       }
       // driver used to execute the task.
       // https://www.nomadproject.io/docs/job-specification/task#driver
-      driver = "exec"
-
+      driver = "raw_exec"
+      
+      env {
+        say-hello-to = "${var.say-hello-to}"
+      }
       config {
         // command is the binary that sh will call.
-        command = "socat"
-
-        // args if you have them, will need to be added here. If you try to pass
-        // them above, you will not have a fun time.
-        //
-        // below you can see that we're doing a little bit of variable
-        // interpolation, you can read more on that here:
-        // https://www.nomadproject.io/docs/runtime/interpolation
-        //
-        // one important bit to grok here though, is that if we want to use a
-        // shell environment variable here, instead of interpolating a var we
-        // declared in the job specification, we would need to escape this
-        // variable with an extra "$" before the ${.
-        args = [
-          "-v",
-          "-v",
-          "TCP-LISTEN:1234,crlf,reuseaddr,fork SYSTEM:'echo",
-          "HTTP/1.0 200;",
-          "echo Content-Type:",
-          "text/plain;",
-          "echo;",
-          "echo",
-          "${var.say-hello-to}'"
-        ]
+        command = "${NOMAD_ALLOC_DIR}/hello-world.sh"
+      }
+      template {
+        data        = var.hello-world-sh-template
+        destination = "${NOMAD_ALLOC_DIR}/hello-world.sh"
+        change_mode = "restart"
       }
     }
   }
