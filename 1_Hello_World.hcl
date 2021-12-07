@@ -47,15 +47,14 @@ job "hello-world" {
       // Consul should determine that the hello-world allocation is healthy enough
       // to advertise as part of the Service Catalog.
       // https://www.nomadproject.io/docs/job-specification/service
-      service "server" {
+      service {
         name = "hello-world"
         port = "web-listen"
-
         // check is our health check for the hello world allocation. This one is
         // super simple; we only check that the "web-listen" tcp port is alive.
         // https://www.nomadproject.io/docs/job-specification/service#check
         check {
-          name     = "attache:tcp-alive"
+          name     = "server:tcp-alive"
           type     = "tcp"
           port     = "web-listen"
           interval = "3s"
