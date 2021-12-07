@@ -24,5 +24,5 @@ $ sudo nomad agent -dev -bind 0.0.0.0 -log-level ERROR -dc dev-general
 
 ### Start a Nomad job deployment:
 ```shell
-$ nomad job run -verbose -var-file=./1_Hello_World_Vars.hcl ./1_Hello_World
+$ nomad job run -verbose -var-file=./1_Hello_World_Vars.hcl ./1_Hello_World.hcl
 ```
