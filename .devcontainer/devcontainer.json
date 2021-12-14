@@ -2,8 +2,9 @@
 	"name": "Hashicorp Lessons",
 	"build":{
     "dockerfile": "Dockerfile",
-    "context": "."
+    "context": ".",
   },
+	"runArgs": [ "--cap-add=SYS_PTRACE", "--cap-add=SYS_ADMIN", "--cap-add=NET_ADMIN", "--security-opt", "seccomp=unconfined" ],
 	"workspaceFolder": "/workspaces",
 	// Add the IDs of extensions you want installed when the container is created.
 	"extensions": [
