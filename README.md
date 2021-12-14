@@ -24,7 +24,7 @@ $ sudo nomad agent -dev -bind 0.0.0.0 -log-level ERROR -dc dev-general
 
 # (A Highly Commented) Nomad Job Specification
 
-```hcl2
+```hcl
 // 'variable' stanzas are used to declare variables that a job specification can
 // have passed to it via '-var' and '-var-file' options on the nomad command
 // line. https://www.nomadproject.io/docs/job-specification/hcl2/variables
