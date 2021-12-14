@@ -144,26 +144,12 @@ job "hello-world" {
 This less makes usees `socat`, a simple CLI based web server. Ensure that you've
 got it installed before continuing.
 
-## Run the `hello-world`job:
+## Run the `hello-world` Job:
 ```shell
 $ nomad job run -verbose -var-file=./1_HELLO_WORLD/vars.hcl ./1_HELLO_WORLD/job.hcl
 ```
 
-## Stop and purge the `hello-world` job:
-```shell
-nomad job stop -purge "hello-world"
-```
-
-# Workshop 2: Hello World via Consul
-This makes use of a simple CLI based HTTP web server called `socat`. Ensure that you've
-got it installed before continuing.
-
-## Run the `hello-world`job:
-```shell
-$ nomad job run -verbose -var-file=./1_HELLO_WORLD/vars.hcl ./1_HELLO_WORLD/job.hcl
-```
-
-## Stop and purge the `hello-world` job:
+## Stop and purge the `hello-world` Job:
 ```shell
 nomad job stop -purge "hello-world"
 ```

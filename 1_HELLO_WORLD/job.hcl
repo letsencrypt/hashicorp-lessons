@@ -14,12 +14,14 @@ job "hello-world" {
     count = 1
 
     network {
+
       port "web-listen" {
         static = 1234
       }
     }
 
     task "server" {
+
       service {
         name = "hello-world"
         port = "web-listen"
@@ -32,11 +34,7 @@ job "hello-world" {
           timeout  = "2s"
         }
       }
-
       driver = "raw_exec"
-      env {
-        say-hello-to = "${var.say-hello-to}"
-      }
 
       config {
         command = "${NOMAD_ALLOC_DIR}/hello-world.sh"
@@ -46,6 +44,10 @@ job "hello-world" {
         data        = var.hello-world-sh-template
         destination = "${NOMAD_ALLOC_DIR}/hello-world.sh"
         change_mode = "restart"
+      }
+
+      env {
+        say-hello-to = "${var.say-hello-to}"
       }
     }
   }
