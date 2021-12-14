@@ -1,7 +1,3 @@
-variable "say-hello-to" {
-  type = string
-}
-
 variable "hello-world-sh-template" {
   type = string
 }
@@ -11,25 +7,22 @@ job "hello-world" {
   type        = "service"
 
   group "web" {
-    count = 1
+    count = 2
 
     network {
-
-      port "web-listen" {
-        static = 1234
-      }
+      port "web-exploit" {}
     }
 
     task "server" {
 
       service {
         name = "hello-world"
-        port = "web-listen"
+        port = "web-exploit"
 
         check {
           name     = "server:tcp-alive"
           type     = "tcp"
-          port     = "web-listen"
+          port     = "web-exploit"
           interval = "3s"
           timeout  = "2s"
         }
@@ -47,7 +40,7 @@ job "hello-world" {
       }
 
       env {
-        say-hello-to = "${var.say-hello-to}"
+        port = "${NOMAD_ALLOC_PORT_web-exploit}"
       }
     }
   }
