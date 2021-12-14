@@ -4,7 +4,7 @@
     "dockerfile": "Dockerfile",
     "context": ".",
   },
-	"runArgs": [ "--cap-add=SYS_PTRACE", "--cap-add=SYS_ADMIN", "--cap-add=NET_ADMIN", "--security-opt", "seccomp=unconfined" ],
+	"runArgs": [ "--privileged",],
 	"workspaceFolder": "/workspaces",
 	// Add the IDs of extensions you want installed when the container is created.
 	"extensions": [
