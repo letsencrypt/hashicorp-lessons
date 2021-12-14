@@ -151,5 +151,5 @@ $ nomad job run -verbose -var-file=./1_HELLO_WORLD/vars.hcl ./1_HELLO_WORLD/job.
 
 ## Stop and purge the `hello-world` Job:
 ```shell
-nomad job stop -purge "hello-world"
+$ nomad job stop -purge "hello-world"
 ```
