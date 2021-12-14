@@ -5,7 +5,7 @@
     "context": ".",
   },
 	"runArgs": [ "--privileged",],
-	"workspaceFolder": "/workspaces",
+	"workspaceFolder": "/workspaces/hashicorp-lessons",
 	// Add the IDs of extensions you want installed when the container is created.
 	"extensions": [
 		"hashicorp.terraform",
