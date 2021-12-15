@@ -382,14 +382,14 @@ Our new line:
 ```
 
 ### Update our `socat` script template to template our dynamic port
-We expect the environment variable to be `NOMAD_ALLOC_PORT_web-listen` because
-the network port we declared on under `job >> group "web" >> network >> port` is
-called `web-listen` . If we had called it `my-special-port` we would use
-`NOMAD_ALLOC_PORT_my-special-port`
-
 By replacing `1234` in our `socat` script template the
 `NOMAD_ALLOC_PORT_web-listen` environment variable our template will always stay
 up-to-date.
+
+We expect the environment variable to be `NOMAD_ALLOC_PORT_web-listen` because
+the network port we declare at `job >> group "web" >> network >> port` is
+called `web-listen` . If we had called it `my-special-port` we would use
+`NOMAD_ALLOC_PORT_my-special-port`
 
 Our existing line:
 ```shell
