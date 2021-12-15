@@ -34,7 +34,7 @@ job "hello-world" {
           timeout  = "2s"
         }
       }
-      driver = "raw_exec"
+      driver = "exec"
 
       config {
         command = "${NOMAD_ALLOC_DIR}/hello-world.sh"
