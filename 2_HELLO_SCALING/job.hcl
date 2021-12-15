@@ -11,13 +11,11 @@ job "hello-world" {
   type        = "service"
 
   group "web" {
-    count = 1
+    count = 2
 
     network {
 
-      port "web-listen" {
-        static = 1234
-      }
+      port "web-listen" {}
     }
 
     task "server" {

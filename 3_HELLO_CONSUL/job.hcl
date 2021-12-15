@@ -11,13 +11,11 @@ job "hello-world" {
   type        = "service"
 
   group "web" {
-    count = 1
+    count = 2
 
     network {
 
-      port "web-listen" {
-        static = 1234
-      }
+      port "web-listen" {}
     }
 
     task "server" {
@@ -48,6 +46,7 @@ job "hello-world" {
 
       env {
         say-hello-to = "${var.say-hello-to}"
+        say-hello-port = "${NOMAD_ALLOC_PORT_web-listen}"
       }
     }
   }
