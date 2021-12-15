@@ -278,9 +278,9 @@ Scheduler dry-run:
 ```
 
 ### Run the `hello-world` Job:
-We expect that running our `hello-world` job should succeed just because the
-`plan` output above stated that all of our tasks would be successfully
-allocated. Let's find out!
+We expect that running our `hello-world` job should succeed because the `plan`
+output above stated that all of our tasks would be successfully allocated. Let's
+find out!
 
 ```shell
 $ nomad job run -verbose -var-file=./1_HELLO_WORLD/vars.hcl ./1_HELLO_WORLD/job.hcl
