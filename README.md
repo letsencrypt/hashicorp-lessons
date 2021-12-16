@@ -457,7 +457,7 @@ $ nomad job run -verbose -var-file=./1_HELLO_WORLD/vars.hcl ./1_HELLO_WORLD/job.
 ```
 
 ## Let's fetch our the ports of our 2 new `hello-world` allocations
-There are four ways that we can fetch the ports that Nomad assigned to our
+There are a few ways that we can fetch the ports that Nomad assigned to our
 `hello-world` allocations:
 
 The first is via the Nomad web UI:
