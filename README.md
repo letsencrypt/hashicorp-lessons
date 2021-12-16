@@ -141,7 +141,7 @@ job "hello-world" {
 ```
 
 # Workshop 1: Hello World
-This less makes usees `socat` , a simple CLI based web server. Ensure that
+This less makes use of `socat`, a simple CLI based web server. Ensure that
 you've got it installed before continuing.
 
 ## Check the plan output for the `hello-world` Job
@@ -588,9 +588,13 @@ treepie.local.node.dev-general.consul. 0 IN TXT "consul-network-segment="
 ;; MSG SIZE  rcvd: 294
 ```
 
-Given the output of this `SRV` record you should be able to browse to http://localhost:27047 or http://localhost:24701 and be greeted.
+Given the output of this `SRV` record you should be able to browse to
+http://localhost:27047 or http://localhost:24701 and be greeted.
 
-If you follow [these docs](https://learn.hashicorp.com/tutorials/consul/dns-forwarding) you should also be able to browse to http://hello-world.service.dev-general.consul:27047 or http://hello-world.service.dev-general.consul:24701.
+If you follow [these
+docs](https://learn.hashicorp.com/tutorials/consul/dns-forwarding) you should
+also be able to browse to http://hello-world.service.dev-general.consul:27047 or
+http://hello-world.service.dev-general.consul:24701.
 
 # Workshop 3: Hello Consul
 It's best if you follow the documentation here to update your Job specification
