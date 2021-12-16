@@ -553,10 +553,10 @@ means that we can also grab these addresses and ports via the Consul Web UI:
   port for each of our `hello-world` allocations.
 
 But, how would a service be able to locate these `hello-world` allocations? Well
-sure, you could install embed a Consul Client in some of your other services
-that want to connect with `hello-world`, but there's something a little simpler
-that you can do as a first approach, use the DNS endpoint that Consul exposes by
-default to fetch theses addresses and ports in the form of a SRV record.
+sure, you could integrate a Consul Client into these other services that want to
+connect with `hello-world`, but there's something a little simpler that you can
+do as a first approach, use the DNS endpoint that Consul exposes by default to
+fetch theses addresses and ports in the form of a SRV record.
 ```shell
 $ dig @127.0.0.1 -p 8600 hello-world.service.dev-general.consul. SRV
 ; <<>> DiG 9.10.6 <<>> @127.0.0.1 -p 8600 hello-world.service.dev-general.consul. SRV
@@ -588,9 +588,9 @@ treepie.local.node.dev-general.consul. 0 IN TXT "consul-network-segment="
 ;; MSG SIZE  rcvd: 294
 ```
 
-Given the output of this `SRV` record you should be able to load up 
+Given the output of this `SRV` record you should be able to browse to http://localhost:27047 or http://localhost:24701 and be greeted.
 
-http://hello-world.service.dev-general.consul:27047/
+If you follow [these docs](https://learn.hashicorp.com/tutorials/consul/dns-forwarding) you should also be able to browse to http://hello-world.service.dev-general.consul:27047 or http://hello-world.service.dev-general.consul:24701.
 
 # Workshop 3: Hello Consul
 It's best if you follow the documentation here to update your Job specification
@@ -621,7 +621,7 @@ allocations. After an initial deploy, Nomad will then watch the Consul K/V path
 for changes to the name. If a change is detected, Nomad will re-run
 `consul-template` with the updated value and then take the action specified by
 the `change_mode` attribute of our `template` stanza. In our case, it will
-`restart` the `server` task  
+`restart` the `server` task.
 
 ## Modify our `socat` script template to source from Consul
 Our template var in `1_HELLO_WORLD/vars.hcl` is currently:
