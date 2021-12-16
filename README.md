@@ -765,5 +765,5 @@ updated. Nomad re-templated our `socat` shell script and then restarted our
 
 Note: you may have observed a downtime of about 5 seconds between when the
 `server` task being stopped and when it was started again. This is the default
-wait time between stop and start operations and it's entirely cofigurable on a
+wait time between stop and start operations and it's entirely configurable on a
 per Job basis.
