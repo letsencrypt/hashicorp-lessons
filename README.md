@@ -759,8 +759,8 @@ to: "SAMANTHA"
 
 If you reload http://localhost:24360 or http://localhost:31370 you should be
 greeted by your updated name. This did not require a deployment; Nomad was
-notified that the value at the Consul K/V path of `hello-world/config` was had
-been updated. Nomad re-templated our `socat` shell script and then restarted our
+notified that the value at the Consul K/V path of `hello-world/config` had been
+updated. Nomad re-templated our `socat` shell script and then restarted our
 `server` task just like we asked (in the `template` stanza).
 
 Note: you may have observed a downtime of about 5 seconds between when the
