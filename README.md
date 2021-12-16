@@ -140,11 +140,11 @@ job "hello-world" {
 }
 ```
 
-## Workshop 1: Hello World
+# Workshop 1: Hello World
 This less makes usees `socat` , a simple CLI based web server. Ensure that
 you've got it installed before continuing.
 
-### Check the plan output for the `hello-world` Job:
+## Check the plan output for the `hello-world` Job:
 Running the `plan` subcommand will help us understand what actions the Nomad
 Scheduler is going to take on our behalf. Now, you're proably seeing a whole lot
 of changes here that were not included in our `hello-world` Job Specification.
@@ -277,7 +277,7 @@ Scheduler dry-run:
 - All tasks successfully allocated.
 ```
 
-### Run the `hello-world` Job:
+## Run the `hello-world` Job:
 We expect that running our `hello-world` job should succeed because the `plan`
 output above stated that all of our tasks would be successfully allocated. Let's
 find out!
@@ -286,7 +286,7 @@ find out!
 $ nomad job run -verbose -var-file=./1_HELLO_WORLD/vars.hcl ./1_HELLO_WORLD/job.hcl
 ```
 
-### Load up the the `hello-world` URL in your browser:
+## Load up the the `hello-world` URL in your browser:
 http://localhost:1234
 
 You should see:
@@ -294,14 +294,14 @@ You should see:
 Hello, Samantha!
 ```
 
-### Let's make that say _YOUR NAME_ instead of _Samantha_:
+## Let's make that say _YOUR NAME_ instead of _Samantha_:
 Edit line `1` in `1_HELLO_WORLD/vars.hcl` to be YOUR NAME:
 
 ```hcl
 say-hello-to = "YOUR NAME"
 ```
 
-### Check the plan output for the `hello-world` Job:
+## Check the plan output for the `hello-world` Job:
 ```shell
 $ nomad job plan -verbose -var-file=./1_HELLO_WORLD/vars.hcl ./1_HELLO_WORLD/job.hcl
 +/- Job: "hello-world"
@@ -315,19 +315,19 @@ Scheduler dry-run:
 
 Looks like it's going to work out just fine!
 
-### Let's go ahead and deploy our updated `hello-world` Job:
+## Let's go ahead and deploy our updated `hello-world` Job:
 ```shell
 $ nomad job run -verbose -var-file=./1_HELLO_WORLD/vars.hcl ./1_HELLO_WORLD/job.hcl
 ```
 
-### Load up the the `hello-world` URL in your browser
+## Load up the the `hello-world` URL in your browser
 If you go to: http://localhost:1234, you should now see:
 
 ```
 Hello, YOUR NAME!
 ```
 
-## Workshop 2: Hello Scaling
+# Workshop 2: Hello Scaling
 It's time to scale our `hello-world` job. It's best if you follow the
 documentation here to update your Job specification at `1_HELLO_WORLD/job.hcl`
 
@@ -335,14 +335,14 @@ and your vars file at `1_HELLO_WORLD/vars.hcl` , but if you get lost you can see
 the final product under `2_HELLO_SCALING/job.hcl` and `2_HELLO_SCALING/vars.hcl`
 .
 
-### Okay, let's try incrementing the count in our Job Specification:
+## Let's try incrementing the count in our Job Specification:
 Edit `job >> group "web" >> count` in `1_HELLO_WORLD/job.hcl` from `1` to `2` :
 
 ```hcl
     count = 2
 ```
 
-### Check the plan output for the `hello-world` Job:
+## Check the plan output for the `hello-world` Job:
 ```shell
 $ nomad job plan -verbose -var-file=./1_HELLO_WORLD/vars.hcl ./1_HELLO_WORLD/job.hcl
 +/- Job: "hello-world"
@@ -362,7 +362,7 @@ exhaustion. Not to worry though, we can update our Job Specification to let the
 Nomad Scheduler pick a port for each of our `hello-world` allocations to listen
 on.
 
-### Update our `hello-world` Job Specification to make port selection dynamic
+## Update our `hello-world` Job Specification to make port selection dynamic
 Under `job >> group "web" >> network >> port` we can remove our static port
 assignment of `1234` and leave empty curly braces `{}` . This will instruct the
 Nomad Scheduler dynamically assign the port for each allocation.
@@ -381,14 +381,14 @@ Our new line:
       port "web-listen" {}
 ```
 
-### Update our `socat` script template to template our dynamic port
+## Update our `socat` script template to template our dynamic port
 By replacing `1234` in our `socat` script template the
 `NOMAD_ALLOC_PORT_web-listen` environment variable our template will always stay
 up-to-date.
 
 We expect the environment variable to be `NOMAD_ALLOC_PORT_web-listen` because
-the network port we declare at `job >> group "web" >> network >> port` is
-called `web-listen` . If we had called it `my-special-port` we would use
+the network port we declare at `job >> group "web" >> network >> port` is called
+`web-listen` . If we had called it `my-special-port` we would use
 `NOMAD_ALLOC_PORT_my-special-port`
 
 Our existing line:
@@ -404,7 +404,7 @@ Our new line:
 For more info on Nomad Runtime Environment Variables
 https://www.nomadproject.io/docs/runtime/environment
 
-### Check the plan output of updated `hello-world` Job:
+## Check the plan output of updated `hello-world` Job:
 ```shell
 +/- Job: "hello-world"
 +/- Task Group: "web" (1 create, 1 ignore)
@@ -451,12 +451,12 @@ Scheduler dry-run:
 
 Okay, this looks as though it will work!
 
-### Run the updated `hello-world` Job:
+## Run the updated `hello-world` Job:
 ```shell
 $ nomad job run -verbose -var-file=./1_HELLO_WORLD/vars.hcl ./1_HELLO_WORLD/job.hcl
 ```
 
-### Let's fetch our the ports of our 2 new `hello-world` allocations
+## Let's fetch our the ports of our 2 new `hello-world` allocations
 There are four ways that we can fetch the ports that Nomad assigned to our
 `hello-world` allocations:
 
@@ -558,9 +558,8 @@ sure, you could install embed a Consul Client in some of your other services
 that want to connect with `hello-world`, but there's something a little simpler
 that you can do as a first approach, use the DNS endpoint that Consul exposes by
 default to fetch theses addresses and ports in the form of a SRV record.
-```
+```shell
 $ dig @127.0.0.1 -p 8600 hello-world.service.dev-general.consul. SRV
-
 ; <<>> DiG 9.10.6 <<>> @127.0.0.1 -p 8600 hello-world.service.dev-general.consul. SRV
 ; (1 server found)
 ;; global options: +cmd
@@ -590,5 +589,181 @@ treepie.local.node.dev-general.consul. 0 IN TXT "consul-network-segment="
 ;; MSG SIZE  rcvd: 294
 ```
 
-## Workshop 3: Hello Consul
-Coming Soon
+Given the output of this `SRV` record you should be able to load up 
+
+http://hello-world.service.dev-general.consul:27047/
+
+# Workshop 3: Hello Consul
+Redploying `hello-world` every time we want to change the name we're saying
+hello to seems a little heavy handed when we really just need to update our
+`socat` template and restart our `server` task. So, how can we accomplish this
+without a deploy? One option is storing this name in Consul.
+
+Nomad ships with a tool called `consul-template` that we've actually already
+been using this entire time. Our `template` stanza in the `server` task uses
+`consul-template` to template our `socat` shell script.
+
+```hcl
+      template {
+        data        = var.hello-world-sh-template
+        destination = "${NOMAD_ALLOC_DIR}/hello-world.sh"
+        change_mode = "restart"
+      }
+```
+
+We can instruct `consul-template` to retrieve the name of the person we're
+saying hello to from the Consul K/V store while deploying our `hello-world`
+allocations. After an initial deploy, Nomad will then watch the Consul K/V path
+for changes to the name. If a change is detected, Nomad will re-run
+`consul-template` with the updated value and then take the action specified by
+the `change_mode` attribute of our `template` stanza. In our case, it will
+`restart` the `server` task  
+
+## Modify our `socat` script template to source from Consul
+Our template var in `1_HELLO_WORLD/vars.hcl` is currently:
+```hcl
+hello-world-sh-template = <<-EOF
+  #!/usr/bin/env bash
+  socat \
+    -v \
+    TCP-LISTEN:{{ env "NOMAD_ALLOC_PORT_web-listen" }},crlf,reuseaddr,fork \
+    SYSTEM:"
+        echo HTTP/1.1 200 OK;
+        echo Content-Type\: text/plain;
+        echo;
+        echo \"Hello, {{ env "say-hello-to" }}!\";
+    "
+EOF
+
+```
+
+We should edit it like so:
+```hcl
+hello-world-sh-template = <<-EOF
+  #!/usr/bin/env bash
+  {{ with $v := key "hello-world/config" | parseYAML }}
+  socat \
+    -v \
+    TCP-LISTEN:{{ env "NOMAD_ALLOC_PORT_web-listen" }},crlf,reuseaddr,fork \
+    SYSTEM:"
+        echo HTTP/1.1 200 OK;
+        echo Content-Type\: text/plain;
+        echo;
+        echo \"Hello, {{ $v.to }}!\";
+    "
+  {{ end }}
+EOF
+
+```
+Here we're setting a variable `v` with the parsed contents of the YAML stored at
+the Consul K/V path of `hello-world/config`. We're then templating the value of
+the `to` key.
+
+Note: make sure you leave an empty newline at the end of your vars file
+otherwise the Nomad CLI won't be able to parse it properly.
+
+## Push our YAML formatted config to Consul
+We could do this with the Consul web UI but using the `consul` CLI is much
+faster.
+
+```shell
+$ consul kv put 'hello-world/config' 'to: Samantha'
+Success! Data written to: hello-world/config
+
+$ consul kv get 'hello-world/config'
+to: "Samantha"
+```
+
+Here we've pushed a `to` key with a value of `"Samantha"` to the
+`hello-world/config` Consul K/V. We have also fetched it just to be sure.
+
+## Remove `say-hello-to` from our vars
+Since we're storing this name in Consul we won't need `say-hello-to` in our vars
+file, we should remove this line:
+
+```hcl
+say-hello-to            = "Samantha"
+```
+
+We can safely remove this variable declaration from our Job Specification as
+well.
+
+```hcl
+variable "say-hello-to" {
+  type = string
+}
+```
+
+And lastly, we've been passing `var.say-hello-to` as an environment variable for
+use in our `socat` template. We can now remove this line, and the `env` stanza
+below, entirely:
+
+```hcl
+      env {
+        say-hello-to = "${var.say-hello-to}"
+      }
+```
+
+## Check the plan output for our updated `hello-world` Job:
+```shell
+$ nomad job plan -verbose -var-file=./1_HELLO_WORLD/vars.hcl ./1_HELLO_WORLD/job.hcl
++/- Job: "hello-world"
++/- Task Group: "web" (1 create/destroy update, 1 ignore)
+  +/- Task: "server" (forces create/destroy update)
+    -   Env[say-hello-to]: "Samantha"
+    +/- Template {
+          ChangeMode:   "restart"
+          ChangeSignal: ""
+          DestPath:     "${NOMAD_ALLOC_DIR}/hello-world.sh"
+      +/- EmbeddedTmpl: "#!/usr/bin/env bash\nsocat \\\n  -v \\\n  TCP-LISTEN:{{ env \"NOMAD_ALLOC_PORT_web-listen\" }},crlf,reuseaddr,fork \\\n  SYSTEM:\"\n      echo HTTP/1.1 200 OK;\n      echo Content-Type\\: text/plain;\n      echo;\n      echo \\\"Hello, {{ env \"say-hello-to\" }}!\\\";\n  \"\n" => "#!/usr/bin/env bash\n{{ with $v := key \"hello-world/config\" | parseYAML }}\nsocat \\\n  -v \\\n  TCP-LISTEN:{{ env \"NOMAD_ALLOC_PORT_web-listen\" }},crlf,reuseaddr,fork \\\n  SYSTEM:\"\n      echo HTTP/1.1 200 OK;\n      echo Content-Type\\: text/plain;\n      echo;\n      echo \\\"Hello, {{ $v.to }}!\\\";\n  \"\n{{ end }}\n"
+          Envvars:      "false"
+          LeftDelim:    "{{"
+          Perms:        "0644"
+          RightDelim:   "}}"
+          SourcePath:   ""
+          Splay:        "5000000000"
+          VaultGrace:   "0"
+        }
+
+Scheduler dry-run:
+- All tasks successfully allocated.
+```
+
+Alright this looks like it should work.
+
+## Run our updated `hello-world` Job:
+```shell
+$ nomad job run -verbose -var-file=./1_HELLO_WORLD/vars.hcl ./1_HELLO_WORLD/job.hcl
+```
+
+## Get our new ports
+```shell
+$ dig @127.0.0.1 -p 8600 hello-world.service.dev-general.consul. SRV | grep hello-world.service
+; <<>> DiG 9.10.6 <<>> @127.0.0.1 -p 8600 hello-world.service.dev-general.consul. SRV
+;hello-world.service.dev-general.consul.  IN SRV
+hello-world.service.dev-general.consul. 0 IN SRV 1 1 24360 7f000001.addr.dev-general.consul.
+hello-world.service.dev-general.consul. 0 IN SRV 1 1 31370 7f000001.addr.dev-general.consul.
+```
+
+You should be able to browse to http://localhost:24360 or http://localhost:31370
+and be greeted.
+
+## Let's try changing the value of `to` in Consul
+```shell
+$ consul kv put 'hello-world/config' 'to: SAMANTHA'
+Success! Data written to: hello-world/config
+
+$ consul kv get 'hello-world/config'
+to: "SAMANTHA"
+```
+
+If you reload http://localhost:24360 or http://localhost:31370 you should be
+greeted by your updated name. This did not require a deployment; Nomad was
+notified that the value at the Consul K/V path of `hello-world/config` was had
+been updated. Nomad re-templated our `socat` shell script and then restarted our
+`server` task just like we asked (in the `template` stanza).
+
+Note: you may have observed a downtime of about 5 seconds between when the
+`server` task being stopped and when it was started again. This is the default
+wait time between stop and start operations and it's entirely cofigurable on a
+per Job basis.

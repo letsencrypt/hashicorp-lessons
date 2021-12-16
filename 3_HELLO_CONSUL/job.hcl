@@ -1,7 +1,3 @@
-variable "say-hello-to" {
-  type = string
-}
-
 variable "hello-world-sh-template" {
   type = string
 }
@@ -42,11 +38,6 @@ job "hello-world" {
         data        = var.hello-world-sh-template
         destination = "${NOMAD_ALLOC_DIR}/hello-world.sh"
         change_mode = "restart"
-      }
-
-      env {
-        say-hello-to = "${var.say-hello-to}"
-        say-hello-port = "${NOMAD_ALLOC_PORT_web-listen}"
       }
     }
   }
