@@ -761,6 +761,7 @@ $ consul kv get 'hello-world/config'
 to: "SAMANTHA"
 ```
 
+## Browse to our `hello-world` allocations again
 If you reload http://localhost:24360 or http://localhost:31370 you should be
 greeted by your updated name. This did not require a deployment; Nomad was
 notified that the value at the Consul K/V path of `hello-world/config` had been
@@ -771,3 +772,5 @@ Note: you may have observed a downtime of about 5 seconds between when the
 `server` task being stopped and when it was started again. This is the default
 wait time between stop and start operations and it's entirely configurable on a
 per Job basis.
+
+🎉 All done for now, excellent work! 💪🏻
