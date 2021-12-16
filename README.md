@@ -144,7 +144,7 @@ job "hello-world" {
 This less makes usees `socat` , a simple CLI based web server. Ensure that
 you've got it installed before continuing.
 
-## Check the plan output for the `hello-world` Job:
+## Check the plan output for the `hello-world` Job
 Running the `plan` subcommand will help us understand what actions the Nomad
 Scheduler is going to take on our behalf. Now, you're proably seeing a whole lot
 of changes here that were not included in our `hello-world` Job Specification.
@@ -277,7 +277,7 @@ Scheduler dry-run:
 - All tasks successfully allocated.
 ```
 
-## Run the `hello-world` Job:
+## Run the `hello-world` Job
 We expect that running our `hello-world` job should succeed because the `plan`
 output above stated that all of our tasks would be successfully allocated. Let's
 find out!
@@ -301,7 +301,7 @@ Edit line `1` in `1_HELLO_WORLD/vars.hcl` to be YOUR NAME:
 say-hello-to = "YOUR NAME"
 ```
 
-## Check the plan output for the `hello-world` Job:
+## Check the plan output for the `hello-world` Job
 ```shell
 $ nomad job plan -verbose -var-file=./1_HELLO_WORLD/vars.hcl ./1_HELLO_WORLD/job.hcl
 +/- Job: "hello-world"
@@ -315,7 +315,7 @@ Scheduler dry-run:
 
 Looks like it's going to work out just fine!
 
-## Let's go ahead and deploy our updated `hello-world` Job:
+## Let's go ahead and deploy our updated `hello-world` Job
 ```shell
 $ nomad job run -verbose -var-file=./1_HELLO_WORLD/vars.hcl ./1_HELLO_WORLD/job.hcl
 ```
@@ -330,19 +330,18 @@ Hello, YOUR NAME!
 # Workshop 2: Hello Scaling
 It's time to scale our `hello-world` job. It's best if you follow the
 documentation here to update your Job specification at `1_HELLO_WORLD/job.hcl`
-
-and your vars file at `1_HELLO_WORLD/vars.hcl` , but if you get lost you can see
-the final product under `2_HELLO_SCALING/job.hcl` and `2_HELLO_SCALING/vars.hcl`
-.
+and your vars file at `1_HELLO_WORLD/vars.hcl`, but if you get lost you can see
+the final product under `2_HELLO_SCALING/job.hcl` and
+`2_HELLO_SCALING/vars.hcl`.
 
 ## Let's try incrementing the count in our Job Specification:
-Edit `job >> group "web" >> count` in `1_HELLO_WORLD/job.hcl` from `1` to `2` :
+Edit `job >> group "web" >> count` in `1_HELLO_WORLD/job.hcl` from `1` to `2`:
 
 ```hcl
     count = 2
 ```
 
-## Check the plan output for the `hello-world` Job:
+## Check the plan output for the `hello-world` Job
 ```shell
 $ nomad job plan -verbose -var-file=./1_HELLO_WORLD/vars.hcl ./1_HELLO_WORLD/job.hcl
 +/- Job: "hello-world"
@@ -381,7 +380,7 @@ Our new line:
       port "web-listen" {}
 ```
 
-## Update our `socat` script template to template our dynamic port
+## Update our `socat` script template to use our dynamic port
 By replacing `1234` in our `socat` script template the
 `NOMAD_ALLOC_PORT_web-listen` environment variable our template will always stay
 up-to-date.
@@ -389,7 +388,7 @@ up-to-date.
 We expect the environment variable to be `NOMAD_ALLOC_PORT_web-listen` because
 the network port we declare at `job >> group "web" >> network >> port` is called
 `web-listen` . If we had called it `my-special-port` we would use
-`NOMAD_ALLOC_PORT_my-special-port`
+`NOMAD_ALLOC_PORT_my-special-port`.
 
 Our existing line:
 ```shell
@@ -401,10 +400,10 @@ Our new line:
     TCP-LISTEN:{{ env "NOMAD_ALLOC_PORT_web-listen" }},crlf,reuseaddr,fork \
 ```
 
-For more info on Nomad Runtime Environment Variables
-https://www.nomadproject.io/docs/runtime/environment
+For more info on Nomad Runtime Environment Variables see these
+[docs](https://www.nomadproject.io/docs/runtime/environment).
 
-## Check the plan output of updated `hello-world` Job:
+## Check the plan output of updated `hello-world` Job
 ```shell
 +/- Job: "hello-world"
 +/- Task Group: "web" (1 create, 1 ignore)
@@ -451,7 +450,7 @@ Scheduler dry-run:
 
 Okay, this looks as though it will work!
 
-## Run the updated `hello-world` Job:
+## Run the updated `hello-world` Job
 ```shell
 $ nomad job run -verbose -var-file=./1_HELLO_WORLD/vars.hcl ./1_HELLO_WORLD/job.hcl
 ```
@@ -469,8 +468,8 @@ The first is via the Nomad web UI:
 
 The Nomad web UI is super nice, but some of us would rather use a CLI:
 
-* Run `nomad job status hello-world` and note the `ID` for each `Allocation`
-  with `running` in the `Status` column:
+* Run `nomad job status hello-world` and note the `ID` for each allocation with
+  `running` in the `Status` column:
   ```shell
   $ nomad job status hello-world
   ID            = hello-world
@@ -544,7 +543,7 @@ The Nomad web UI is super nice, but some of us would rather use a CLI:
   2021-12-15T12:24:01-08:00  Received    Task received by client
   ```
 * Under `Allocation Addresses` we can see `127.0.0.1:24701` is the address for
-  this Allocation
+  this allocation
 
 In our `hello-world` Job Specification you'll see that we also registered our
 `server` task with the Consul Catalog as a Service called `hello-world`. This
@@ -594,6 +593,11 @@ Given the output of this `SRV` record you should be able to load up
 http://hello-world.service.dev-general.consul:27047/
 
 # Workshop 3: Hello Consul
+It's best if you follow the documentation here to update your Job specification
+at `1_HELLO_WORLD/job.hcl` and your vars file at `1_HELLO_WORLD/vars.hcl`, but
+if you get lost you can see the final product under `3_HELLO_CONSUL/job.hcl` and
+`3_HELLO_CONSUL/vars.hcl`.
+
 Redploying `hello-world` every time we want to change the name we're saying
 hello to seems a little heavy handed when we really just need to update our
 `socat` template and restart our `server` task. So, how can we accomplish this
@@ -704,7 +708,7 @@ below, entirely:
       }
 ```
 
-## Check the plan output for our updated `hello-world` Job:
+## Check the plan output for our updated `hello-world` Job
 ```shell
 $ nomad job plan -verbose -var-file=./1_HELLO_WORLD/vars.hcl ./1_HELLO_WORLD/job.hcl
 +/- Job: "hello-world"
@@ -731,7 +735,7 @@ Scheduler dry-run:
 
 Alright this looks like it should work.
 
-## Run our updated `hello-world` Job:
+## Run our updated `hello-world` Job
 ```shell
 $ nomad job run -verbose -var-file=./1_HELLO_WORLD/vars.hcl ./1_HELLO_WORLD/job.hcl
 ```
@@ -748,7 +752,7 @@ hello-world.service.dev-general.consul. 0 IN SRV 1 1 31370 7f000001.addr.dev-gen
 You should be able to browse to http://localhost:24360 or http://localhost:31370
 and be greeted.
 
-## Let's try changing the value of `to` in Consul
+## Update the value of `to` in Consul
 ```shell
 $ consul kv put 'hello-world/config' 'to: SAMANTHA'
 Success! Data written to: hello-world/config
