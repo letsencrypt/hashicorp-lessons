@@ -778,3 +778,8 @@ wait time between stop and start operations and it's entirely configurable on a
 per Job basis.
 
 🎉 All done for now, excellent work! 💪🏻
+
+# Workshop 4: Hello Proxy
+This workshop requires that you have Traefik, an open source edge router that
+we're going to use as a proxy for our "hello-world" allocations, installed and
+in your path.
