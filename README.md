@@ -390,10 +390,10 @@ Our new line:
 
 ## Update our `socat` script template to use our dynamic port
 By replacing `1234` in our `socat` script template the
-`NOMAD_ALLOC_PORT_web-listen` environment variable our template will always stay
+`NOMAD_ALLOC_PORT_http` environment variable our template will always stay
 up-to-date.
 
-We expect the environment variable to be `NOMAD_ALLOC_PORT_web-listen` because
+We expect the environment variable to be `NOMAD_ALLOC_PORT_http` because
 the network port we declare at `job >> group "web" >> network >> port` is called
 `http` . If we had called it `my-special-port` we would use
 `NOMAD_ALLOC_PORT_my-special-port`.
@@ -442,7 +442,7 @@ For more info on Nomad Runtime Environment Variables see these
           ChangeMode:   "restart"
           ChangeSignal: ""
           DestPath:     "${NOMAD_ALLOC_DIR}/hello-world.sh"
-      +/- EmbeddedTmpl: "#!/usr/bin/env bash\nsocat \\\n  -v \\\n  TCP-LISTEN:1234,crlf,reuseaddr,fork \\\n  SYSTEM:\"\n      echo HTTP/1.1 200 OK;\n      echo Content-Type\\: text/plain;\n      echo;\n      echo \\\"Hello, {{ env \"say-hello-to\" }}!\\\";\n  \"\n" => "#!/usr/bin/env bash\nsocat \\\n  -v \\\n  TCP-LISTEN:{{ env \"NOMAD_ALLOC_PORT_web-listen\" }},crlf,reuseaddr,fork \\\n  SYSTEM:\"\n      echo HTTP/1.1 200 OK;\n      echo Content-Type\\: text/plain;\n      echo;\n      echo \\\"Hello, {{ env \"say-hello-to\" }}!\\\";\n  \"\n"
+      +/- EmbeddedTmpl: "#!/usr/bin/env bash\nsocat \\\n  -v \\\n  TCP-LISTEN:1234,crlf,reuseaddr,fork \\\n  SYSTEM:\"\n      echo HTTP/1.1 200 OK;\n      echo Content-Type\\: text/plain;\n      echo;\n      echo \\\"Hello, {{ env \"say-hello-to\" }}!\\\";\n  \"\n" => "#!/usr/bin/env bash\nsocat \\\n  -v \\\n  TCP-LISTEN:{{ env \"NOMAD_ALLOC_PORT_http\" }},crlf,reuseaddr,fork \\\n  SYSTEM:\"\n      echo HTTP/1.1 200 OK;\n      echo Content-Type\\: text/plain;\n      echo;\n      echo \\\"Hello, {{ env \"say-hello-to\" }}!\\\";\n  \"\n"
           Envvars:      "false"
           LeftDelim:    "{{"
           Perms:        "0644"
@@ -731,7 +731,7 @@ $ nomad job plan -verbose -var-file=./1_HELLO_WORLD/vars.hcl ./1_HELLO_WORLD/job
           ChangeMode:   "restart"
           ChangeSignal: ""
           DestPath:     "${NOMAD_ALLOC_DIR}/hello-world.sh"
-      +/- EmbeddedTmpl: "#!/usr/bin/env bash\nsocat \\\n  -v \\\n  TCP-LISTEN:{{ env \"NOMAD_ALLOC_PORT_web-listen\" }},crlf,reuseaddr,fork \\\n  SYSTEM:\"\n      echo HTTP/1.1 200 OK;\n      echo Content-Type\\: text/plain;\n      echo;\n      echo \\\"Hello, {{ env \"say-hello-to\" }}!\\\";\n  \"\n" => "#!/usr/bin/env bash\n{{ with $v := key \"hello-world/config\" | parseYAML }}\nsocat \\\n  -v \\\n  TCP-LISTEN:{{ env \"NOMAD_ALLOC_PORT_web-listen\" }},crlf,reuseaddr,fork \\\n  SYSTEM:\"\n      echo HTTP/1.1 200 OK;\n      echo Content-Type\\: text/plain;\n      echo;\n      echo \\\"Hello, {{ $v.to }}!\\\";\n  \"\n{{ end }}\n"
+      +/- EmbeddedTmpl: "#!/usr/bin/env bash\nsocat \\\n  -v \\\n  TCP-LISTEN:{{ env \"NOMAD_ALLOC_PORT_http\" }},crlf,reuseaddr,fork \\\n  SYSTEM:\"\n      echo HTTP/1.1 200 OK;\n      echo Content-Type\\: text/plain;\n      echo;\n      echo \\\"Hello, {{ env \"say-hello-to\" }}!\\\";\n  \"\n" => "#!/usr/bin/env bash\n{{ with $v := key \"hello-world/config\" | parseYAML }}\nsocat \\\n  -v \\\n  TCP-LISTEN:{{ env \"NOMAD_ALLOC_PORT_http\" }},crlf,reuseaddr,fork \\\n  SYSTEM:\"\n      echo HTTP/1.1 200 OK;\n      echo Content-Type\\: text/plain;\n      echo;\n      echo \\\"Hello, {{ $v.to }}!\\\";\n  \"\n{{ end }}\n"
           Envvars:      "false"
           LeftDelim:    "{{"
           Perms:        "0644"
