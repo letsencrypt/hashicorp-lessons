@@ -64,8 +64,37 @@ job "hello-world" {
     // server. https://www.nomadproject.io/docs/job-specification/network
     network {
       // https://www.nomadproject.io/docs/job-specification/network#port-parameters
-      port "web-listen" {
+      port "http" {
         static = 1234
+      }
+    }
+
+    // 'service' tells Nomad how the hello-world app should be advertised (as a
+    // service) in Consul and how Consul should determine that the hello-world
+    // allocation is healthy enough to advertise as part of the Service Catalog.
+    // https://www.nomadproject.io/docs/job-specification/service
+    service {
+      name = "hello-world"
+      port = "http"
+
+      // 'check' is the check used by Consul to assess the health or readiness
+      // of an indivual 'hello-world' allocation.
+      // https://www.nomadproject.io/docs/job-specification/service#check
+      check {
+        name     = "ready-tcp"
+        type     = "tcp"
+        port     = "http"
+        interval = "3s"
+        timeout  = "2s"
+      }
+
+      check {
+        name     = "ready-http"
+        type     = "http"
+        port     = "http"
+        path     = "/"
+        interval = "3s"
+        timeout  = "2s"
       }
     }
 
@@ -73,27 +102,6 @@ job "hello-world" {
     // supervise, for instance, a web server, or a database server.
     // https://www.nomadproject.io/docs/job-specification/task
     task "server" {
-
-      // 'service' tells Nomad how the hello-world app should be advertised (as
-      // a service) in Consul and how Consul should determine that the
-      // hello-world allocation is healthy enough to advertise as part of the
-      // Service Catalog.
-      // https://www.nomadproject.io/docs/job-specification/service
-      service {
-        name = "hello-world"
-        port = "web-listen"
-
-        // 'check' is the check used by Consul to assess the health or readiness
-        // of an indivual 'hello-world' allocation.
-        // https://www.nomadproject.io/docs/job-specification/service#check
-        check {
-          name     = "ready"
-          type     = "tcp"
-          port     = "web-listen"
-          interval = "3s"
-          timeout  = "2s"
-        }
-      }
       // 'driver' is the Task Driver that Nomad should use to execute our
       // 'task'. For shell commands and scripts there are two options:
       // 1. 'raw_exec' is used to execute a command for a task without any
@@ -120,8 +128,8 @@ job "hello-world" {
       // https://www.nomadproject.io/docs/job-specification/task#template
       // https://www.nomadproject.io/docs/job-specification/template
       template {
-        // 'data' this can just be a string that you pass in as a var like
-        // we've done here.
+        // 'data' this can just be a string that you pass in as a var like we've
+        // done here.
         data        = var.hello-world-sh-template
         destination = "${NOMAD_ALLOC_DIR}/hello-world.sh"
         change_mode = "restart"
@@ -202,7 +210,7 @@ $ nomad job plan -verbose -var-file=./1_HELLO_WORLD/vars.hcl ./1_HELLO_WORLD/job
       Mode:     ""
     + Static Port {
       + HostNetwork: "default"
-      + Label:       "web-listen"
+      + Label:       "http"
       + To:          "0"
       + Value:       "1234"
       }
@@ -234,7 +242,7 @@ $ nomad job plan -verbose -var-file=./1_HELLO_WORLD/vars.hcl ./1_HELLO_WORLD/job
       + Name:              "hello-world"
       + Namespace:         "default"
       + OnUpdate:          "require_healthy"
-      + PortLabel:         "web-listen"
+      + PortLabel:         "http"
         TaskName:          ""
       + Check {
           AddressMode:            ""
@@ -250,7 +258,7 @@ $ nomad job plan -verbose -var-file=./1_HELLO_WORLD/vars.hcl ./1_HELLO_WORLD/job
         + Name:                   "ready"
         + OnUpdate:               "require_healthy"
           Path:                   ""
-        + PortLabel:              "web-listen"
+        + PortLabel:              "http"
           Protocol:               ""
         + SuccessBeforePassing:   "0"
         + TLSSkipVerify:          "false"
@@ -353,7 +361,7 @@ Scheduler dry-run:
 - WARNING: Failed to place all allocations.
   Task Group "web" (failed to place 1 allocation):
     * Resources exhausted on 1 nodes
-    * Dimension "network: reserved port collision web-listen=1234" exhausted on 1 nodes
+    * Dimension "network: reserved port collision http=1234" exhausted on 1 nodes
 ```
 
 It looks like having a static port of `1234` is going to cause resource
@@ -369,7 +377,7 @@ Nomad Scheduler dynamically assign the port for each allocation.
 Our existing lines:
 
 ```shell
-      port "web-listen" {
+      port "http" {
         static = 1234
       }
 ```
@@ -377,7 +385,7 @@ Our existing lines:
 Our new line:
 
 ```shell
-      port "web-listen" {}
+      port "http" {}
 ```
 
 ## Update our `socat` script template to use our dynamic port
@@ -387,7 +395,7 @@ up-to-date.
 
 We expect the environment variable to be `NOMAD_ALLOC_PORT_web-listen` because
 the network port we declare at `job >> group "web" >> network >> port` is called
-`web-listen` . If we had called it `my-special-port` we would use
+`http` . If we had called it `my-special-port` we would use
 `NOMAD_ALLOC_PORT_my-special-port`.
 
 Our existing line:
@@ -397,7 +405,7 @@ Our existing line:
 
 Our new line:
 ```shell
-    TCP-LISTEN:{{ env "NOMAD_ALLOC_PORT_web-listen" }},crlf,reuseaddr,fork \
+    TCP-LISTEN:{{ env "NOMAD_ALLOC_PORT_http" }},crlf,reuseaddr,fork \
 ```
 
 For more info on Nomad Runtime Environment Variables see these
@@ -414,7 +422,7 @@ For more info on Nomad Runtime Environment Variables see these
         Mode:     ""
       + Dynamic Port {
         + HostNetwork: "default"
-        + Label:       "web-listen"
+        + Label:       "http"
         + To:          "0"
         }
       }
@@ -424,7 +432,7 @@ For more info on Nomad Runtime Environment Variables see these
         Mode:     ""
       - Static Port {
         - HostNetwork: "default"
-        - Label:       "web-listen"
+        - Label:       "http"
         - To:          "0"
         - Value:       "1234"
         }
@@ -463,7 +471,7 @@ The first is via the Nomad web UI:
 * Open: http://localhost:4646/ui/jobs/hello-world/web
 * Scroll down to the `Allocations` table
 * Open each of the `Allocations` where Status is `running`
-* Scroll down to the `Ports` table, and note the value for `web-listen` in the
+* Scroll down to the `Ports` table, and note the value for `http` in the
   `Host Address` column
 
 The Nomad web UI is super nice, but some of us would rather use a CLI:
@@ -523,7 +531,7 @@ The Nomad web UI is super nice, but some of us would rather use a CLI:
 
   Allocation Addresses
   Label        Dynamic  Address
-  *web-listen  yes      127.0.0.1:24701
+  *http  yes      127.0.0.1:24701
 
   Task "server" is "running"
   Task Resources
@@ -634,7 +642,7 @@ hello-world-sh-template = <<-EOF
   #!/usr/bin/env bash
   socat \
     -v \
-    TCP-LISTEN:{{ env "NOMAD_ALLOC_PORT_web-listen" }},crlf,reuseaddr,fork \
+    TCP-LISTEN:{{ env "NOMAD_ALLOC_PORT_http" }},crlf,reuseaddr,fork \
     SYSTEM:"
         echo HTTP/1.1 200 OK;
         echo Content-Type\: text/plain;
@@ -652,7 +660,7 @@ hello-world-sh-template = <<-EOF
   {{ with $v := key "hello-world/config" | parseYAML }}
   socat \
     -v \
-    TCP-LISTEN:{{ env "NOMAD_ALLOC_PORT_web-listen" }},crlf,reuseaddr,fork \
+    TCP-LISTEN:{{ env "NOMAD_ALLOC_PORT_http" }},crlf,reuseaddr,fork \
     SYSTEM:"
         echo HTTP/1.1 200 OK;
         echo Content-Type\: text/plain;
@@ -779,7 +787,7 @@ per Job basis.
 
 🎉 All done for now, excellent work! 💪🏻
 
-# Workshop 4: Hello Proxy
-This workshop requires that you have Traefik, an open source edge router that
-we're going to use as a proxy for our "hello-world" allocations, installed and
-in your path.
+# Workshop 4: Hello Load Balancing
+In this workshop we're going to be using Traefik, an open-source edge-router
+written in Go with fantastic Consul integration. So please ensure that you've
+got version 2.5.x installed and in your path.

@@ -10,24 +10,32 @@ job "hello-world" {
     count = 2
 
     network {
+      port "http" {}
+    }
 
-      port "web-listen" {}
+    service {
+      name = "hello-world"
+      port = "http"
+
+      check {
+        name     = "ready-tcp"
+        type     = "tcp"
+        port     = "http"
+        interval = "3s"
+        timeout  = "2s"
+      }
+
+      check {
+        name     = "ready-http"
+        type     = "http"
+        port     = "http"
+        path     = "/"
+        interval = "3s"
+        timeout  = "2s"
+      }
     }
 
     task "server" {
-
-      service {
-        name = "hello-world"
-        port = "web-listen"
-
-        check {
-          name     = "ready"
-          type     = "tcp"
-          port     = "web-listen"
-          interval = "3s"
-          timeout  = "2s"
-        }
-      }
       driver = "raw_exec"
 
       config {

@@ -3,7 +3,7 @@ hello-world-sh-template = <<-EOF
   {{ with $v := key "hello-world/config" | parseYAML }}
   socat \
     -v \
-    TCP-LISTEN:{{ env "NOMAD_ALLOC_PORT_web-listen" }},crlf,reuseaddr,fork \
+    TCP-LISTEN:{{ env "NOMAD_ALLOC_PORT_http" }},crlf,reuseaddr,fork \
     SYSTEM:"
         echo HTTP/1.1 200 OK;
         echo Content-Type\: text/plain;
@@ -13,22 +13,21 @@ hello-world-sh-template = <<-EOF
   {{ end }}
 EOF
 traefik-config-template = <<-EOF
-  [entryPoints]
   [entryPoints.http]
-  address = ":8080"
+  address = ":{{ env "NOMAD_ALLOC_PORT_http" }}"
   
   [entryPoints.traefik]
-  address = ":8081"
+  address = ":{{ env "NOMAD_ALLOC_PORT_dashboard" }}"
   
   [api]
   dashboard = true
   insecure = true
   
   [providers.consulCatalog]
-  prefix = "traefik"
+  prefix = "hello-world-lb"
   exposedByDefault = false
   
   [providers.consulCatalog.endpoint]
-  address = "127.0.0.1:8500"
+  address = "{{ env "CONSUL_HTTP_ADDR" }}"
   scheme = "http"
 EOF

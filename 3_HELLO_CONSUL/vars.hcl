@@ -3,7 +3,7 @@ hello-world-sh-template = <<-EOF
   {{ with $v := key "hello-world/config" | parseYAML }}
   socat \
     -v \
-    TCP-LISTEN:{{ env "NOMAD_ALLOC_PORT_web-listen" }},crlf,reuseaddr,fork \
+    TCP-LISTEN:{{ env "NOMAD_ALLOC_PORT_http" }},crlf,reuseaddr,fork \
     SYSTEM:"
         echo HTTP/1.1 200 OK;
         echo Content-Type\: text/plain;
