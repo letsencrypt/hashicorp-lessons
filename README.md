@@ -789,5 +789,7 @@ per Job basis.
 
 # Workshop 4: Hello Load Balancing
 In this workshop we're going to be using Traefik, an open-source edge-router
-written in Go with fantastic Consul integration. So please ensure that you've
+written in Go with fantastic Consul integration. So, please ensure that you've
 got version 2.5.x installed and in your path.
+
+🚧 Under Construction 🚧
