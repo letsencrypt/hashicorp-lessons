@@ -81,8 +81,8 @@ job "hello-world" {
     }
   }
 
-  group "web" {
-    count = 3
+  group "greeter" {
+    count = 2
 
     network {
       port "http" {}

@@ -53,7 +53,7 @@ job "hello-world" {
 
   // 'group' is a series of tasks that should be co-located (run) on the same
   // Nomad client. https://www.nomadproject.io/docs/job-specification/group
-  group "web" {
+  group "greeter" {
     // 'count' is the number of allocations (instances) of the hello-world app
     // you want to be deployed.
     // https://www.nomadproject.io/docs/job-specification/group#count
@@ -173,7 +173,7 @@ $ nomad job plan -verbose -var-file=./1_HELLO_WORLD/vars.hcl ./1_HELLO_WORLD/job
 + Datacenters {
   + Datacenters: "dev-general"
   }
-+ Task Group: "web" (1 create)
++ Task Group: "greeter" (1 create)
   + Count: "1" (forces create)
   + RestartPolicy {
     + Attempts: "2"
@@ -215,6 +215,59 @@ $ nomad job plan -verbose -var-file=./1_HELLO_WORLD/vars.hcl ./1_HELLO_WORLD/job
       + Value:       "1234"
       }
     }
+  + Service {
+    + AddressMode:       "auto"
+    + EnableTagOverride: "false"
+    + Name:              "hello-world"
+    + Namespace:         "default"
+    + OnUpdate:          "require_healthy"
+    + PortLabel:         "http"
+      TaskName:          ""
+    + Check {
+        AddressMode:            ""
+        Body:                   ""
+        Command:                ""
+      + Expose:                 "false"
+      + FailuresBeforeCritical: "0"
+        GRPCService:            ""
+      + GRPCUseTLS:             "false"
+        InitialStatus:          ""
+      + Interval:               "3000000000"
+        Method:                 ""
+      + Name:                   "ready-http"
+      + OnUpdate:               "require_healthy"
+      + Path:                   "/"
+      + PortLabel:              "http"
+        Protocol:               ""
+      + SuccessBeforePassing:   "0"
+      + TLSSkipVerify:          "false"
+        TaskName:               ""
+      + Timeout:                "2000000000"
+      + Type:                   "http"
+      }
+    + Check {
+        AddressMode:            ""
+        Body:                   ""
+        Command:                ""
+      + Expose:                 "false"
+      + FailuresBeforeCritical: "0"
+        GRPCService:            ""
+      + GRPCUseTLS:             "false"
+        InitialStatus:          ""
+      + Interval:               "3000000000"
+        Method:                 ""
+      + Name:                   "ready-tcp"
+      + OnUpdate:               "require_healthy"
+        Path:                   ""
+      + PortLabel:              "http"
+        Protocol:               ""
+      + SuccessBeforePassing:   "0"
+      + TLSSkipVerify:          "false"
+        TaskName:               ""
+      + Timeout:                "2000000000"
+      + Type:                   "tcp"
+      }
+    }
   + Task: "server" (forces create)
     + Driver:            "raw_exec"
     + Env[say-hello-to]: "Samantha"
@@ -235,37 +288,6 @@ $ nomad job plan -verbose -var-file=./1_HELLO_WORLD/vars.hcl ./1_HELLO_WORLD/job
     + LogConfig {
       + MaxFileSizeMB: "10"
       + MaxFiles:      "10"
-      }
-    + Service {
-      + AddressMode:       "auto"
-      + EnableTagOverride: "false"
-      + Name:              "hello-world"
-      + Namespace:         "default"
-      + OnUpdate:          "require_healthy"
-      + PortLabel:         "http"
-        TaskName:          ""
-      + Check {
-          AddressMode:            ""
-          Body:                   ""
-          Command:                ""
-        + Expose:                 "false"
-        + FailuresBeforeCritical: "0"
-          GRPCService:            ""
-        + GRPCUseTLS:             "false"
-          InitialStatus:          ""
-        + Interval:               "3000000000"
-          Method:                 ""
-        + Name:                   "ready"
-        + OnUpdate:               "require_healthy"
-          Path:                   ""
-        + PortLabel:              "http"
-          Protocol:               ""
-        + SuccessBeforePassing:   "0"
-        + TLSSkipVerify:          "false"
-          TaskName:               ""
-        + Timeout:                "2000000000"
-        + Type:                   "tcp"
-        }
       }
     + Template {
       + ChangeMode:   "restart"
@@ -313,7 +335,7 @@ say-hello-to = "YOUR NAME"
 ```shell
 $ nomad job plan -verbose -var-file=./1_HELLO_WORLD/vars.hcl ./1_HELLO_WORLD/job.hcl
 +/- Job: "hello-world"
-+/- Task Group: "web" (1 create/destroy update)
++/- Task Group: "greeter" (1 create/destroy update)
   +/- Task: "server" (forces create/destroy update)
     +/- Env[say-hello-to]: "Samantha" => "YOUR NAME"
 
@@ -343,7 +365,7 @@ the final product under `2_HELLO_SCALING/job.hcl` and
 `2_HELLO_SCALING/vars.hcl`.
 
 ## Let's try incrementing the count in our Job Specification:
-Edit `job >> group "web" >> count` in `1_HELLO_WORLD/job.hcl` from `1` to `2`:
+Edit `job >> group "greeter" >> count` in `1_HELLO_WORLD/job.hcl` from `1` to `2`:
 
 ```hcl
     count = 2
@@ -353,13 +375,13 @@ Edit `job >> group "web" >> count` in `1_HELLO_WORLD/job.hcl` from `1` to `2`:
 ```shell
 $ nomad job plan -verbose -var-file=./1_HELLO_WORLD/vars.hcl ./1_HELLO_WORLD/job.hcl
 +/- Job: "hello-world"
-+/- Task Group: "web" (1 create, 1 in-place update)
++/- Task Group: "greeter" (1 create, 1 in-place update)
   +/- Count: "1" => "2" (forces create)
       Task: "server"
 
 Scheduler dry-run:
 - WARNING: Failed to place all allocations.
-  Task Group "web" (failed to place 1 allocation):
+  Task Group "greeter" (failed to place 1 allocation):
     * Resources exhausted on 1 nodes
     * Dimension "network: reserved port collision http=1234" exhausted on 1 nodes
 ```
@@ -370,7 +392,7 @@ Nomad Scheduler pick a port for each of our `hello-world` allocations to listen
 on.
 
 ## Update our `hello-world` Job Specification to make port selection dynamic
-Under `job >> group "web" >> network >> port` we can remove our static port
+Under `job >> group "greeter" >> network >> port` we can remove our static port
 assignment of `1234` and leave empty curly braces `{}` . This will instruct the
 Nomad Scheduler dynamically assign the port for each allocation.
 
@@ -394,7 +416,7 @@ By replacing `1234` in our `socat` script template the
 up-to-date.
 
 We expect the environment variable to be `NOMAD_ALLOC_PORT_http` because
-the network port we declare at `job >> group "web" >> network >> port` is called
+the network port we declare at `job >> group "greeter" >> network >> port` is called
 `http` . If we had called it `my-special-port` we would use
 `NOMAD_ALLOC_PORT_my-special-port`.
 
@@ -414,7 +436,7 @@ For more info on Nomad Runtime Environment Variables see these
 ## Check the plan output of updated `hello-world` Job
 ```shell
 +/- Job: "hello-world"
-+/- Task Group: "web" (1 create, 1 ignore)
++/- Task Group: "greeter" (1 create, 1 ignore)
   +/- Count: "1" => "2" (forces create)
   +   Network {
         Hostname: ""
@@ -724,7 +746,7 @@ below, entirely:
 ```shell
 $ nomad job plan -verbose -var-file=./1_HELLO_WORLD/vars.hcl ./1_HELLO_WORLD/job.hcl
 +/- Job: "hello-world"
-+/- Task Group: "web" (1 create/destroy update, 1 ignore)
++/- Task Group: "greeter" (1 create/destroy update, 1 ignore)
   +/- Task: "server" (forces create/destroy update)
     -   Env[say-hello-to]: "Samantha"
     +/- Template {

@@ -6,7 +6,7 @@ job "hello-world" {
   datacenters = ["dev-general"]
   type        = "service"
 
-  group "web" {
+  group "greeter" {
     count = 2
 
     network {
