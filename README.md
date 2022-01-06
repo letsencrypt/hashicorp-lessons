@@ -824,7 +824,10 @@ Out Traefik config is a minimal `.toml` file. Our first two declarations are
 HTTP `entryPoints`. This is similar to `http { server {` in NGINX parlance. The
 only attribute we need need to template is the `<hostname>:<port>`. The first is
 the `greeter` load-balancer and the second is the Traefik dashboard (not
-required).
+required). For both of these we can rely on the Nomad environment variables for
+two new ports we're going to add to our job specification `http` and
+`dashboard`. Again, we prefix these with `NOMAD_ALLOC_PORT_` and Nomad will do
+the rest for us.
 
 The next declaration is `api`. Here we're just going to enable the `dashboard`
 and disable `tls`.
@@ -1148,13 +1151,13 @@ It's time to scale our `greeter` allocations again, except this time we have a
 load-balancer that will reconfigure itself when the count is increased.
 
 - You can scale allocations via the job specification but you can also
-  temporarily scale a given `job >> group` via the nomad CLI.
+  temporarily scale a given `job >> group` via the nomad CLI:
   ```shell
   $ nomad job scale "hello-world" "greeter" 3
   ```
 - Refresh:
   http://localhost:8081/dashboard/#/http/services/hello-world@consulcatalog
-- You can also temporarily de-scale a given `job >> group` via the nomad CLI.
+- You can also temporarily de-scale a given `job >> group` via the nomad CLI:
   ```shell
   $ nomad job scale "hello-world" "greeter" 3
   ```
