@@ -861,7 +861,11 @@ traefik-config-template = <<-EOF
   address = "{{ env "CONSUL_HTTP_ADDR" }}"
   scheme = "http"
 EOF
+
 ```
+
+Ensure that you add a newline at the end of this file otherwise Nomad will be
+unable to parse it.
 
 ## Declare our new `traefik-config-template` varable in the job specification
 Near the top, just below our existing `hello-world-sh-template` variable
@@ -1135,18 +1139,17 @@ Alright this looks like it should work.
 $ nomad job run -verbose -var-file=./1_HELLO_WORLD/vars.hcl ./1_HELLO_WORLD/job.hcl
 ```
 
-## Browse to our `hello-world` load-balancer
-Open http://localhost:8080 and ensure that you're being greeted.
+## Browse to our new Traefik load-balancer
+- Open http://localhost:8080 and ensure that you're being greeted
+- Open http://localhost:8081 and ensure that it loads succesfully
 
-## Browse to our new Traefik dashboard
-Open http://localhost:8081 and ensure that it loads succesfully.
+## Inspect the Consul provided backend configuration via the Traefik dashboard
+- Open:
+  http://localhost:8081/dashboard/#/http/services/hello-world@consulcatalog
+- You should find your 2 existing `greeter` allocations listed by their full
+  address (`<hostname>:<port>`).
 
-## Inspect our Consul provided backend configuration
-Open: http://localhost:8081/dashboard/#/http/services/hello-world@consulcatalog
-and you should find your 2 existing `greeter` allocations listed by their full
-address (`<hostname>:<port>`).
-
-## Add more `greeter` allocations
+## Perform some scaling of our `greeter` allocations 
 It's time to scale our `greeter` allocations again, except this time we have a
 load-balancer that will reconfigure itself when the count is increased.
 
@@ -1157,11 +1160,13 @@ load-balancer that will reconfigure itself when the count is increased.
   ```
 - Refresh:
   http://localhost:8081/dashboard/#/http/services/hello-world@consulcatalog
+- You should see 3 `greeter` allocations
 - You can also temporarily de-scale a given `job >> group` via the nomad CLI:
   ```shell
-  $ nomad job scale "hello-world" "greeter" 3
+  $ nomad job scale "hello-world" "greeter" 2
   ```
 - Refresh:
   http://localhost:8081/dashboard/#/http/services/hello-world@consulcatalog
+- You should see 2 `greeter` allocations like before
 
 🎉 All done for now, excellent work! 💪🏻
