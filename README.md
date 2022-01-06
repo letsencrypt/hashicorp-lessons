@@ -88,6 +88,9 @@ job "hello-world" {
         timeout  = "2s"
       }
 
+      // 'check' same as the above except the status of the service depends on the HTTP
+      // response code: any 2xx code is considered passing, a 429 Too ManyRequests is
+      // warning, and anything else is a failure.
       check {
         name     = "ready-http"
         type     = "http"
@@ -365,7 +368,8 @@ the final product under `2_HELLO_SCALING/job.hcl` and
 `2_HELLO_SCALING/vars.hcl`.
 
 ## Let's try incrementing the count in our Job Specification:
-Edit `job >> group "greeter" >> count` in `1_HELLO_WORLD/job.hcl` from `1` to `2`:
+Edit `job >> group "greeter" >> count` in `1_HELLO_WORLD/job.hcl` from `1` to
+`2`:
 
 ```hcl
     count = 2
@@ -411,12 +415,11 @@ Our new line:
 ```
 
 ## Update our `socat` script template to use our dynamic port
-By replacing `1234` in our `socat` script template the
-`NOMAD_ALLOC_PORT_http` environment variable our template will always stay
-up-to-date.
+By replacing `1234` in our `socat` script template the `NOMAD_ALLOC_PORT_http`
+environment variable our template will always stay up-to-date.
 
-We expect the environment variable to be `NOMAD_ALLOC_PORT_http` because
-the network port we declare at `job >> group "greeter" >> network >> port` is called
+We expect the environment variable to be `NOMAD_ALLOC_PORT_http` because the
+network port we declare at `job >> group "greeter" >> network >> port` is called
 `http` . If we had called it `my-special-port` we would use
 `NOMAD_ALLOC_PORT_my-special-port`.
 
@@ -493,8 +496,8 @@ The first is via the Nomad web UI:
 * Open: http://localhost:4646/ui/jobs/hello-world/web
 * Scroll down to the `Allocations` table
 * Open each of the `Allocations` where Status is `running`
-* Scroll down to the `Ports` table, and note the value for `http` in the
-  `Host Address` column
+* Scroll down to the `Ports` table, and note the value for `http` in the `Host
+  Address` column
 
 The Nomad web UI is super nice, but some of us would rather use a CLI:
 
@@ -807,11 +810,355 @@ Note: you may have observed a downtime of about 5 seconds between when the
 wait time between stop and start operations and it's entirely configurable on a
 per Job basis.
 
-🎉 All done for now, excellent work! 💪🏻
-
 # Workshop 4: Hello Load Balancing
 In this workshop we're going to be using Traefik, an open-source edge-router
-written in Go with fantastic Consul integration. So, please ensure that you've
-got version 2.5.x installed and in your path.
+written in Go with fantastic Consul integration. Please ensure that you've got
+version 2.5.x installed and in your path.
 
-🚧 Under Construction 🚧
+I was able to fetch the binary via Homebrew on MacOS but you can always fetch
+the latest binary for your platform from their
+[releases](https://github.com/traefik/traefik/releases) page.
+
+## Add a Traefik config template to our vars file
+Out Traefik config is a minimal `.toml` file. Our first two declarations are
+HTTP `entryPoints`. This is similar to `http { server {` in NGINX parlance. The
+only attribute we need need to template is the `<hostname>:<port>`. The first is
+the `greeter` load-balancer and the second is the Traefik dashboard (not
+required).
+
+The next declaration is `api`. Here we're just going to enable the `dashboard`
+and disable `tls`.
+
+The final declarations enable and configure the `consulCatalog` provider. There
+are two attributes in the first declaration. `prefix` configures the provider to
+exclusively query for Consul catalog hosts tagged with `prefix:hello-world-lb`.
+`exposedByDefault` (false) configures the provider to query only Consul services
+tagged with `traefik.enable=true`. The last declaration instructs the provider
+on how to connect to Consul. Because Nomad and Consul are already tightly
+integrated we can template `address` with the `CONSUL_HTTP_ADDR` env var. As for
+`scheme`, since we're using Consul in `dev` mode this is `http`.
+
+```hcl
+traefik-config-template = <<-EOF
+  [entryPoints.http]
+  address = ":{{ env "NOMAD_ALLOC_PORT_http" }}"
+  
+  [entryPoints.traefik]
+  address = ":{{ env "NOMAD_ALLOC_PORT_dashboard" }}"
+  
+  [api]
+  dashboard = true
+  insecure = true
+  
+  [providers.consulCatalog]
+  prefix = "hello-world-lb"
+  exposedByDefault = false
+  
+  [providers.consulCatalog.endpoint]
+  address = "{{ env "CONSUL_HTTP_ADDR" }}"
+  scheme = "http"
+EOF
+```
+
+## Declare our new `traefik-config-template` varable in the job specification
+Near the top, just below our existing `hello-world-sh-template` variable
+declaration add the following:
+
+```hcl
+variable "traefik-config-template" {
+  type = string
+}
+```
+
+## Add a new `group` called `load-balancer` above our existing `greeter`
+Our Traefik load-balancer will route requests on port `8080` to any healthy
+`greeter` allocation. Traefik will also expose a dashboard on port `8081`. We've
+added static ports for both the load-balancer (`http`) and the dashboard under
+the `network` stanza. We've also added some TCP and HTTP readiness checks that
+reference these ports in our new `hello-world-lb` Consul service.
+
+```hcl
+  group "load-balancer" {
+    count = 1
+
+    network {
+
+      port "http" {
+        static = 8080
+      }
+
+      port "dashboard" {
+        static = 8081
+      }
+    }
+
+    service {
+      name = "hello-world-lb"
+      port = "http"
+
+      check {
+        name     = "ready-tcp"
+        type     = "tcp"
+        port     = "http"
+        interval = "3s"
+        timeout  = "2s"
+      }
+
+      check {
+        name     = "ready-http"
+        type     = "http"
+        port     = "http"
+        path     = "/"
+        interval = "3s"
+        timeout  = "2s"
+      }
+
+      check {
+        name     = "ready-tcp"
+        type     = "tcp"
+        port     = "dashboard"
+        interval = "3s"
+        timeout  = "2s"
+      }
+
+      check {
+        name     = "ready-http"
+        type     = "http"
+        port     = "dashboard"
+        path     = "/"
+        interval = "3s"
+        timeout  = "2s"
+      }
+    }
+
+    task "traefik" {
+      driver = "raw_exec"
+
+      config {
+        command = "traefik"
+        args = [
+          "--configFile=${NOMAD_ALLOC_DIR}/traefik.toml",
+        ]
+      }
+
+      template {
+        data        = var.traefik-config-template
+        destination = "${NOMAD_ALLOC_DIR}/traefik.toml"
+        change_mode = "restart"
+      }
+    }
+  }
+```
+
+## Lastly, add some tags to the `hello-world` service
+Under the `greeter` group you should see the `service` stanza. Adjust yours to
+include the tags from the Traefik config.
+
+```hcl
+    service {
+      name = "hello-world"
+      port = "http"
+      tags = [
+        "hello-world-lb.enable=true",
+        "hello-world-lb.http.routers.http.rule=Path(`/`)",
+      ]
+```
+
+
+## Check the plan output for our updated `hello-world` Job
+```shell
+$ nomad job plan -verbose -var-file=./1_HELLO_WORLD/vars.hcl ./1_HELLO_WORLD/job.hcl
++/- Job: "hello-world"
++/- Task Group: "greeter" (2 in-place update)
+  +/- Service {
+      AddressMode:       "auto"
+      EnableTagOverride: "false"
+      Name:              "hello-world"
+      Namespace:         "default"
+      OnUpdate:          "require_healthy"
+      PortLabel:         "http"
+      TaskName:          ""
+    + Tags {
+      + Tags: "hello-world-lb.enable=true"
+      + Tags: "hello-world-lb.http.routers.http.rule=Path(`/`)"
+      }
+      }
+      Task: "server"
+
++   Task Group: "load-balancer" (1 create)
+    + Count: "1" (forces create)
+    + RestartPolicy {
+      + Attempts: "2"
+      + Delay:    "15000000000"
+      + Interval: "1800000000000"
+      + Mode:     "fail"
+      }
+    + ReschedulePolicy {
+      + Attempts:      "0"
+      + Delay:         "30000000000"
+      + DelayFunction: "exponential"
+      + Interval:      "0"
+      + MaxDelay:      "3600000000000"
+      + Unlimited:     "true"
+      }
+    + EphemeralDisk {
+      + Migrate: "false"
+      + SizeMB:  "300"
+      + Sticky:  "false"
+      }
+    + Update {
+      + AutoPromote:      "false"
+      + AutoRevert:       "false"
+      + Canary:           "0"
+      + HealthCheck:      "checks"
+      + HealthyDeadline:  "300000000000"
+      + MaxParallel:      "1"
+      + MinHealthyTime:   "10000000000"
+      + ProgressDeadline: "600000000000"
+      }
+    + Network {
+        Hostname: ""
+      + MBits:    "0"
+        Mode:     ""
+      + Static Port {
+        + HostNetwork: "default"
+        + Label:       "http"
+        + To:          "0"
+        + Value:       "8080"
+        }
+      + Static Port {
+        + HostNetwork: "default"
+        + Label:       "dashboard"
+        + To:          "0"
+        + Value:       "8081"
+        }
+      }
+    + Service {
+      + AddressMode:       "auto"
+      + EnableTagOverride: "false"
+      + Name:              "hello-world-lb"
+      + Namespace:         "default"
+      + OnUpdate:          "require_healthy"
+      + PortLabel:         "http"
+        TaskName:          ""
+      + Check {
+          AddressMode:            ""
+          Body:                   ""
+          Command:                ""
+        + Expose:                 "false"
+        + FailuresBeforeCritical: "0"
+          GRPCService:            ""
+        + GRPCUseTLS:             "false"
+          InitialStatus:          ""
+        + Interval:               "3000000000"
+          Method:                 ""
+        + Name:                   "ready-http"
+        + OnUpdate:               "require_healthy"
+        + Path:                   "/"
+        + PortLabel:              "dashboard"
+          Protocol:               ""
+        + SuccessBeforePassing:   "0"
+        + TLSSkipVerify:          "false"
+          TaskName:               ""
+        + Timeout:                "2000000000"
+        + Type:                   "http"
+        }
+      + Check {
+          AddressMode:            ""
+          Body:                   ""
+          Command:                ""
+        + Expose:                 "false"
+        + FailuresBeforeCritical: "0"
+          GRPCService:            ""
+        + GRPCUseTLS:             "false"
+          InitialStatus:          ""
+        + Interval:               "3000000000"
+          Method:                 ""
+        + Name:                   "ready-tcp"
+        + OnUpdate:               "require_healthy"
+          Path:                   ""
+        + PortLabel:              "dashboard"
+          Protocol:               ""
+        + SuccessBeforePassing:   "0"
+        + TLSSkipVerify:          "false"
+          TaskName:               ""
+        + Timeout:                "2000000000"
+        + Type:                   "tcp"
+        }
+      }
+    + Task: "traefik" (forces create)
+      + Driver:        "raw_exec"
+      + KillTimeout:   "5000000000"
+      + Leader:        "false"
+      + ShutdownDelay: "0"
+      + Config {
+        + args[0]: "--configFile=${NOMAD_ALLOC_DIR}/traefik.toml"
+        + command: "traefik"
+        }
+      + Resources {
+        + CPU:         "100"
+        + Cores:       "0"
+        + DiskMB:      "0"
+        + IOPS:        "0"
+        + MemoryMB:    "300"
+        + MemoryMaxMB: "0"
+        }
+      + LogConfig {
+        + MaxFileSizeMB: "10"
+        + MaxFiles:      "10"
+        }
+      + Template {
+        + ChangeMode:   "restart"
+          ChangeSignal: ""
+        + DestPath:     "${NOMAD_ALLOC_DIR}/traefik.toml"
+        + EmbeddedTmpl: "[entryPoints.http]\naddress = \":{{ env \"NOMAD_ALLOC_PORT_http\" }}\"\n  \n[entryPoints.traefik]\naddress = \":{{ env \"NOMAD_ALLOC_PORT_dashboard\" }}\"\n  \n[api]\ndashboard = true\ninsecure = true\n  \n[providers.consulCatalog]\nprefix = \"hello-world-lb\"\nexposedByDefault = false\n  \n[providers.consulCatalog.endpoint]\naddress = \"{{ env \"CONSUL_HTTP_ADDR\" }}\"\nscheme = \"http\"\n"
+        + Envvars:      "false"
+        + LeftDelim:    "{{"
+        + Perms:        "0644"
+        + RightDelim:   "}}"
+          SourcePath:   ""
+        + Splay:        "5000000000"
+        + VaultGrace:   "0"
+        }
+
+Scheduler dry-run:
+- All tasks successfully allocated.
+```
+
+Alright this looks like it should work.
+
+## Run our updated `hello-world` Job
+```shell
+$ nomad job run -verbose -var-file=./1_HELLO_WORLD/vars.hcl ./1_HELLO_WORLD/job.hcl
+```
+
+## Browse to our `hello-world` load-balancer
+Open http://localhost:8080 and ensure that you're being greeted.
+
+## Browse to our new Traefik dashboard
+Open http://localhost:8081 and ensure that it loads succesfully.
+
+## Inspect our Consul provided backend configuration
+Open: http://localhost:8081/dashboard/#/http/services/hello-world@consulcatalog
+and you should find your 2 existing `greeter` allocations listed by their full
+address (`<hostname>:<port>`).
+
+## Add more `greeter` allocations
+It's time to scale our `greeter` allocations again, except this time we have a
+load-balancer that will reconfigure itself when the count is increased.
+
+- You can scale allocations via the job specification but you can also
+  temporarily scale a given `job >> group` via the nomad CLI.
+  ```shell
+  $ nomad job scale "hello-world" "greeter" 3
+  ```
+- Refresh:
+  http://localhost:8081/dashboard/#/http/services/hello-world@consulcatalog
+- You can also temporarily de-scale a given `job >> group` via the nomad CLI.
+  ```shell
+  $ nomad job scale "hello-world" "greeter" 3
+  ```
+- Refresh:
+  http://localhost:8081/dashboard/#/http/services/hello-world@consulcatalog
+
+🎉 All done for now, excellent work! 💪🏻
