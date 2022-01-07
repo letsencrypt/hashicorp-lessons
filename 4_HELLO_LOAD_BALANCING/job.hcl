@@ -1,4 +1,4 @@
-variable "hello-world-sh-template" {
+variable "config-yml-template" {
   type = string
 }
 
@@ -90,7 +90,7 @@ job "hello-world" {
 
 
     service {
-      name = "hello-world"
+      name = "hello-world-greeter"
       port = "http"
       tags = [
         "hello-world-lb.enable=true",
@@ -115,16 +115,19 @@ job "hello-world" {
       }
     }
 
-    task "server" {
+    task "greet" {
       driver = "raw_exec"
 
       config {
-        command = "${NOMAD_ALLOC_DIR}/hello-world.sh"
+        command = "greet"
+        args = [
+          "-c", "${NOMAD_ALLOC_DIR}/config.yml"
+        ]
       }
 
       template {
-        data        = var.hello-world-sh-template
-        destination = "${NOMAD_ALLOC_DIR}/hello-world.sh"
+        data        = var.config-yml-template
+        destination = "${NOMAD_ALLOC_DIR}/config.yml"
         change_mode = "restart"
       }
     }

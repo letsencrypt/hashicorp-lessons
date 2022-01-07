@@ -1,13 +1,6 @@
-say-hello-to            = "Samantha"
-hello-world-sh-template = <<-EOF
-  #!/usr/bin/env bash
-  socat \
-    -v \
-    TCP-LISTEN:1234,crlf,reuseaddr,fork \
-    SYSTEM:"
-        echo HTTP/1.1 200 OK;
-        echo Content-Type\: text/plain;
-        echo;
-        echo \"Hello, {{ env "say-hello-to" }}!\";
-    "
+config-yml-template = <<-EOF
+  ---
+  name: "Samantha"
+  port: 1234
+
 EOF

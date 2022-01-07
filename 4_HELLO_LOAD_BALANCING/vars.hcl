@@ -1,16 +1,10 @@
-hello-world-sh-template = <<-EOF
-  #!/usr/bin/env bash
+config-yml-template     = <<-EOF
   {{ with $v := key "hello-world/config" | parseYAML }}
-  socat \
-    -v \
-    TCP-LISTEN:{{ env "NOMAD_ALLOC_PORT_http" }},crlf,reuseaddr,fork \
-    SYSTEM:"
-        echo HTTP/1.1 200 OK;
-        echo Content-Type\: text/plain;
-        echo;
-        echo \"Hello, {{ $v.to }}!\";
-    "
+  ---
+  name: "{{ $v.name }}"
+  port: {{ env "NOMAD_ALLOC_PORT_http" }}
   {{ end }}
+  
 EOF
 traefik-config-template = <<-EOF
   [entryPoints.http]
